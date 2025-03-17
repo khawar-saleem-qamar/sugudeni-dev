@@ -1,0 +1,144 @@
+deleteMessage (emit)
+	data:
+		{ chatid, senderid, receiverid }
+
+sendMedia (emit)
+	data:
+		{ messageid, senderid, receiverid, mimeType, file }
+
+seeMessage (emit)
+	data:
+		{ senderid, userid }
+
+sendMessage (emit)
+	data:
+		{ messageid, senderid, receiverid, message }
+
+deliveredMessage (on)
+	data:
+		{ receiverid: userid }
+
+threadUpdate (on)
+	data:
+		{
+                    _id: string,
+                    participants: [{
+                        userid: string,,
+                        username: string,,
+                        is_online: string,,
+                        profilePic: string,
+                    }, {
+                        userid: string,,
+                        username: string,,
+                        is_online: string,,
+                        profilePic: string,
+                    }],
+                    last_message: string,,
+                    last_message_sender_id: string,
+                    last_message_Username: string,,
+                    last_message_timestamp: timestamp,
+                    contentType: string,,
+                    unreadCount: number
+                }
+
+messageDeleted (on)
+	data:
+		{ chatid, senderid }
+
+newMedia (on)
+	data:
+		{
+              	_id,
+              	messageid,
+              	senderid,
+              	receiverid,
+              	contentType,
+             	contentURL,
+            	}
+
+unreadMessagesCount (on)
+	data:
+		{ count: number }
+
+newThread (on)
+	data:
+		{
+                    _id: string,
+                    participants: [{
+                        userid: string,,
+                        username: string,,
+                        is_online: string,,
+                        profilePic: string,
+                    }, {
+                        userid: string,,
+                        username: string,,
+                        is_online: string,,
+                        profilePic: string,
+                    }],
+                    last_message: string,,
+                    last_message_sender_id: string,
+                    last_message_Username: string,,
+                    last_message_timestamp: timestamp,
+                    contentType: string,,
+                    unreadCount: number
+                }
+
+seenMessage (on)
+	data: 
+		{ receiverid: string }
+
+newMessage (on)
+	data: 
+		{
+                      _id: string,
+                      messageid,
+                      senderid,
+                      receiverid,
+                      message,
+                }		
+
+
+
+
+Sockets sequence:
+	sendMessage (emit)
+	then:
+		on sender side:
+		if receiver online: deliveredMessage (on)
+		threadUpdate (on) / newThread (on) & newMessage (on)
+		on receier side:
+		threadUpdate (on) / newThread (on) & newMessage (on) & unreadMessagesCount
+		
+		*if the chat already exist b/w both users, threadUpdate is emited from server otherwise newThread
+	when to call:
+		emit this socket to sendMessage to the receiverid*
+
+	sendMedia (emit)
+	then:
+		same as above but newMedia rather than newMessage
+	when to call:
+		emit this socket to sendMedia(files) to the receiverid*
+
+	deleteMessage (emit)
+	then:
+		messageDeleted (on) (on receiver side)
+	when to call:
+		emit this socket to delete a message represented by chatid*
+
+	seeMessage (emit)
+	then:
+		seenMessage (on) (on message sender side)
+	when to call:
+		emit this socket when ever a user opens the chat area of the senderid* user
+
+	onsocket disconnect of any user:
+		threadUpdate (on) is sent to all the users who had chat with that user in the getThreads for updating the online status
+	when to call:
+		called automatically on disconnection to server
+
+	onsocket connection of any user:
+		threadUpdate (on) is sent to all the users who had chat with that user in the getThreads for updating the online status
+	when to call:
+		called automatically on connection to server
+
+*means the referenced term is in the data that you would send you can read the above citation of each socket to get the idea of the term

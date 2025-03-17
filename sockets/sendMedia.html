@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket File Upload</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <h2>Upload Media via WebSocket</h2>
+    <input type="file" id="fileInput" />
+    <button onclick="sendMedia()">Send</button>
+
+    <script>
+        const socket = io("http://localhost:3000", {
+            auth: { userid: "67c82f743b799dbc348b3366" }
+        });
+
+        function sendMedia() {
+            const fileInput = document.getElementById("fileInput");
+            if (!fileInput.files.length) {
+                alert("Please select a file.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onload = function () {
+                const fileData = reader.result;
+                
+                
+                console.log("File sent via WebSocket");
+            };
+            socket.emit("sendMedia", {
+                messageid: "msg123", 
+                senderid: "67c82f743b799dbc348b3366", 
+                receiverid: "67c840373f6b059357ea6495", 
+                mimeType: file.type, 
+                file: files[0]
+            });
+        }
+    </script>
+</body>
+</html>
